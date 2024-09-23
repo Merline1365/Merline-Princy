@@ -1,31 +1,30 @@
 import matplotlib.pyplot as plt
 
-def estimate_trend(y, d):
-    """Estimate trend using a moving average with a window size of d."""
+def moving_average(y, d):
+    """Calculates the moving average (trend) with window size d."""
     n = len(y)
-    trend = [0]*n
+    trend = [0] * n
     for t in range(n):
-        if d % 2 == 1:  # odd d
-            sum_y = sum(y[max(0, t-d//2):min(n, t+d//2+1)])
-            count = min(t+1, n-t, d)
-        else:  # even d
-            sum_y = sum(y[max(0, t-d//2+1):min(n, t+d//2+1)])
-            count = min(t+1, n-t, d)
-        trend[t] = sum_y / count if count > 0 else 0  
+        # Define window boundaries
+        start = max(0, t - d // 2)
+        end = min(n, t + d // 2 + 1)
+        
+        # Calculate the moving average for the current window
+        sum_y = sum(y[start:end])
+        trend[t] = sum_y / (end - start)  # Average of the window
     return trend
 
-def estimate_seasonality(y, d, trend):
-    """Estimate seasonality by dividing the original series by the trend."""
-    n = len(y)
-    seasonality = [0]*n
-    for t in range(n):
-        if trend[t] != 0:
-            seasonality[t] = y[t] / trend[t] 
+def calculate_seasonality(y, trend):
+    """Calculates the seasonality component by dividing the time series by the trend."""
+    seasonality = [0] * len(y)
+    for t in range(len(y)):
+        if trend[t] != 0:  # Avoid division by zero
+            seasonality[t] = y[t] / trend[t]
         else:
-            seasonality[t] = 0  
+            seasonality[t] = 0
     return seasonality
 
-
+# Example data (time series)
 y = [3459, 3458, 4002, 4564, 4221, 4529, 4466, 4137, 4126, 4259, 4240, 4936, 
      3031, 3261, 4160, 4377, 4307, 4696, 4458, 4457, 4364, 4236, 4500, 4974, 
      3075, 3377, 4443, 4261, 4460, 4985, 4324, 4719, 4374, 4248, 4784, 4971, 
@@ -44,27 +43,33 @@ y = [3459, 3458, 4002, 4564, 4221, 4529, 4466, 4137, 4126, 4259, 4240, 4936,
      6627, 6743, 8195, 7828, 9570, 9484, 8608, 9543, 8123, 9649, 9390, 10065, 
      7093, 7483, 8365, 8895, 9794, 9977, 9553, 9375, 9225, 9948, 8758, 10839]
 
-d = 3  
+d = 3  # Window size for moving average (can be adjusted based on the dataset)
 
-trend = estimate_trend(y, d)
-seasonality = estimate_seasonality(y, d, trend)
+# Calculate trend and seasonality
+trend = moving_average(y, d)
+seasonality = calculate_seasonality(y, trend)
 
-plt.figure(figsize=(10, 6))
+# Visualization using matplotlib
+plt.figure(figsize=(10, 8))
 
+# Plot original time series
 plt.subplot(3, 1, 1)
 plt.plot(y, label='Original Time Series', color='blue')
 plt.title('Original Time Series')
 plt.legend()
 
+# Plot trend
 plt.subplot(3, 1, 2)
 plt.plot(trend, label='Trend Component', color='orange')
 plt.title('Trend Component')
 plt.legend()
 
+# Plot seasonality
 plt.subplot(3, 1, 3)
 plt.plot(seasonality, label='Seasonality Component', color='green')
 plt.title('Seasonality Component')
 plt.legend()
 
+# Adjust layout and show the plot
 plt.tight_layout()
 plt.show()
