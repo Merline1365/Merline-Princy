@@ -1,0 +1,2 @@
+This Python code performs a basic time series decomposition, estimating the trend and seasonality components of a given time series dataset. It uses a moving average approach with a window size d to calculate the trend and then derives the seasonality by dividing the original series by the trend.
+The code helps break down a time series into trend and seasonal components, which can be useful for analyzing patterns in the data or preparing it for forecasting.
