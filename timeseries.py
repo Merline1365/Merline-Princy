@@ -1,31 +1,8 @@
+import numpy as np
 import matplotlib.pyplot as plt
 
-def moving_average(y, d):
-    """Calculates the moving average (trend) with window size d."""
-    n = len(y)
-    trend = [0] * n
-    for t in range(n):
-        # Define window boundaries
-        start = max(0, t - d // 2)
-        end = min(n, t + d // 2 + 1)
-        
-        # Calculate the moving average for the current window
-        sum_y = sum(y[start:end])
-        trend[t] = sum_y / (end - start)  # Average of the window
-    return trend
-
-def calculate_seasonality(y, trend):
-    """Calculates the seasonality component by dividing the time series by the trend."""
-    seasonality = [0] * len(y)
-    for t in range(len(y)):
-        if trend[t] != 0:  # Avoid division by zero
-            seasonality[t] = y[t] / trend[t]
-        else:
-            seasonality[t] = 0
-    return seasonality
-
-# Example data (time series)
-y = [3459, 3458, 4002, 4564, 4221, 4529, 4466, 4137, 4126, 4259, 4240, 4936, 
+#Enter TS DATA
+time_series = np.array([[3459, 3458, 4002, 4564, 4221, 4529, 4466, 4137, 4126, 4259, 4240, 4936, 
      3031, 3261, 4160, 4377, 4307, 4696, 4458, 4457, 4364, 4236, 4500, 4974, 
      3075, 3377, 4443, 4261, 4460, 4985, 4324, 4719, 4374, 4248, 4784, 4971, 
      3370, 3484, 4269, 3994, 4715, 4974, 4223, 5000, 4235, 4554, 4851, 4826, 
@@ -41,35 +18,55 @@ y = [3459, 3458, 4002, 4564, 4221, 4529, 4466, 4137, 4126, 4259, 4240, 4936,
      5557, 6237, 7723, 7262, 8241, 8757, 7352, 8496, 7741, 7710, 8247, 8902, 
      6066, 6590, 7923, 7335, 8843, 9327, 7792, 9156, 8037, 8640, 9128, 9545, 
      6627, 6743, 8195, 7828, 9570, 9484, 8608, 9543, 8123, 9649, 9390, 10065, 
-     7093, 7483, 8365, 8895, 9794, 9977, 9553, 9375, 9225, 9948, 8758, 10839]
+     7093, 7483, 8365, 8895, 9794, 9977, 9553, 9375, 9225, 9948, 8758, 10839])
 
-d = 3  # Window size for moving average (can be adjusted based on the dataset)
+q = int(input("Enter value of q: "))
 
-# Calculate trend and seasonality
-trend = moving_average(y, d)
-seasonality = calculate_seasonality(y, trend)
+n = len(time_series)
+Tline = np.zeros(n)
 
-# Visualization using matplotlib
-plt.figure(figsize=(10, 8))
+#Calc Mk values
+#Odd
+if len(time_series) % 2 == 1:
+    for i in range(q, n - q):
+        Tline[i] = np.mean(time_series[i - q:i + q + 1])
+#Even
+else:
+    d = 2 * q
+    for i in range(q, n - q):
+        Tline[i] = (0.5 * time_series[i - q] + np.sum(time_series[i - q + 1:i + q]) + 0.5 * time_series[i + q]) / d
 
-# Plot original time series
-plt.subplot(3, 1, 1)
-plt.plot(y, label='Original Time Series', color='blue')
-plt.title('Original Time Series')
-plt.legend()
 
-# Plot trend
-plt.subplot(3, 1, 2)
-plt.plot(trend, label='Trend Component', color='orange')
-plt.title('Trend Component')
-plt.legend()
+seasonal_effect = np.zeros(n)
+for i in range(n):
+    sum_diff = 0
+    count = 0
+    for j in range(-(n // q), n // q):
+        if 0 <= i + j * q < n:
+            sum_diff += time_series[i + j * q] - Tline[i + j * q]
+            count += 1
+    if count > 0:
+        seasonal_effect[i] = sum_diff / count
 
-# Plot seasonality
-plt.subplot(3, 1, 3)
-plt.plot(seasonality, label='Seasonality Component', color='green')
-plt.title('Seasonality Component')
-plt.legend()
+avg_seasonality = np.mean(seasonal_effect)
+adjusted_seasonal = seasonal_effect - avg_seasonality
 
-# Adjust layout and show the plot
+print("Calculated Trend:", Tline)
+print("Extracted Seasonality:", adjusted_seasonal)
+
+plt.figure(figsize=(10, 6))
+
+plt.subplot(311)
+plt.plot(time_series, label="Original Data")
+plt.legend(loc='upper left')
+
+plt.subplot(312)
+plt.plot(Tline, label="Trend", color='orange')
+plt.legend(loc='upper left')
+
+plt.subplot(313)
+plt.plot(adjusted_seasonal, label="Seasonality", color='green')
+plt.legend(loc='upper left')
+
 plt.tight_layout()
 plt.show()
